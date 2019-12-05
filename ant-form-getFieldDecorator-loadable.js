@@ -20,16 +20,16 @@ function useLoad (props, loadComponent, ErrorCom, setModule, key) {
 function loadable (loadComponent, loadingComponent, errorComponent, key) {
   const LoadingCom = (loadingComponent ? loadingComponent : <p className='component-loading'> Loading </p>)
   const ErrorCom = errorComponent ? errorComponent : <p className='component-error'> Error </p>
-  
-  function AsyncComponent (props) {
+  if (map[key]) {
+    return map[key]
+  }
+
+  var AsyncComponent = function (props) {
     var [module, setModule] = useState(LoadingCom)
     useLoad(props, loadComponent, ErrorCom, setModule, key)
     return module
   }
 
-  if (map[key]) {
-    return map[key]
-  }
   return AsyncComponent
 }
 
