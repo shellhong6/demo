@@ -1,36 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import './my-loadable.scss'
 
-var map = {}
+var componentMap = {}
 
-function useLoad (props, loadComponent, ErrorCom, setModule, key) {
+function useLoad (loadComponent, key, setStatus) {
   useEffect(function () {
-    loadComponent()
+    !componentMap[key] && loadComponent()
     .then(m => {
-      let Module = m.default ? m.default : m
-      map[key] = Module
-      setModule(<Module { ...props }/>)
-    }).catch((error) => {
-      setModule(ErrorCom)
-      console.log(error)
+      componentMap[key] = m.default ? m.default : m
+      setStatus(1)
+    }).catch(() => {
+      setStatus(-1)
     })
   }, [])
 }
 
-function loadable (loadComponent, loadingComponent, errorComponent, key) {
-  const LoadingCom = (loadingComponent ? loadingComponent : <p className='component-loading'> Loading </p>)
-  const ErrorCom = errorComponent ? errorComponent : <p className='component-error'> Error </p>
-  if (map[key]) {
-    return map[key]
+function Loadable (loadComponent, loadingComponent, errorComponent, key) {
+  let [status, setStatus] = useState(componentMap[key] ? 1 : 0)
+  useLoad(loadComponent, key, setStatus)
+  if (status === 1) {
+    return componentMap[key]
+  } else if (status === 0) {
+    return () => loadingComponent ? loadingComponent : <p className='component-loading'>Loading</p>
   }
-
-  var AsyncComponent = function (props) {
-    var [module, setModule] = useState(LoadingCom)
-    useLoad(props, loadComponent, ErrorCom, setModule, key)
-    return module
-  }
-
-  return AsyncComponent
+  return () => errorComponent ? errorComponent : <p className='component-error'>Error</p>
 }
 
-export default loadable
+export default Loadable
